@@ -3,11 +3,11 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock
 
-import pzip
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 
+import pzip
 from pzip_storage import PZipStorage, bad_keys, needs_encryption, needs_rotation
 
 

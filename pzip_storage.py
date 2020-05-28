@@ -2,13 +2,14 @@ import os
 import tempfile
 
 import django.dispatch
-import pzip
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage
 from django.utils.encoding import force_bytes
 
-__version__ = "0.9.0"
+import pzip
+
+__version__ = "0.9.1"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
 
 
@@ -37,8 +38,10 @@ class PZipStorage(FileSystemStorage):
         self.keys = kwargs.pop("keys", self.default_keys)
         self.key_size = kwargs.pop("key_size", pzip.PZip.DEFAULT_KEY_SIZE)
         self.iterations = kwargs.pop("iterations", pzip.PZip.DEFAULT_ITERATIONS)
-        self.extension = kwargs.pop("extension", self.DEFAULT_EXTENSION)
-        self.nocompress = kwargs.pop("nocompress", self.DEFAULT_NOCOMPRESS)
+        self.extension = kwargs.pop("extension", getattr(settings, "PZIP_STORAGE_EXTENSION", self.DEFAULT_EXTENSION))
+        self.nocompress = kwargs.pop(
+            "nocompress", getattr(settings, "PZIP_STORAGE_NOCOMPRESS", self.DEFAULT_NOCOMPRESS)
+        )
         if not self.keys:
             raise ImproperlyConfigured("PZipStorage requires at least one key.")
         super().__init__(*args, **kwargs)
@@ -51,16 +54,18 @@ class PZipStorage(FileSystemStorage):
         yield from keys
 
     def is_pzip(self, name):
-        return os.path.splitext(name)[1] == self.extension
-
-    def should_compress(self, name):
-        return os.path.splitext(name)[1].lower() not in self.nocompress
+        try:
+            pzip.PZip.info(self.path(name))
+            return True
+        except pzip.InvalidFile:
+            return False
 
     def size(self, name):
-        if self.is_pzip(name):
-            with self._open(name) as f:
-                return f.size
-        return super().size(name)
+        try:
+            header = pzip.PZip.info(self.path(name))
+            return header.size
+        except pzip.InvalidFile:
+            return super().size(name)
 
     def _open(self, name, mode="rb"):
         if self.is_pzip(name):
@@ -90,6 +95,9 @@ class PZipStorage(FileSystemStorage):
         except StopIteration as si:
             raise ImproperlyConfigured("PZipStorage requires at least one key.") from si
 
+        # Determine whether we should compress based on the original supplied name/extension.
+        should_compress = os.path.splitext(name)[1].lower() not in self.nocompress
+
         # Create a temporary file to do the encryption/compression before handing off.
         fd, path = tempfile.mkstemp(suffix=self.extension, dir=settings.FILE_UPLOAD_TEMP_DIR)
         with pzip.PZip(
@@ -98,7 +106,7 @@ class PZipStorage(FileSystemStorage):
             key,
             key_size=self.key_size,
             iterations=self.iterations,
-            compress=self.should_compress(name),
+            compress=should_compress,
         ) as f:
             for chunk in content.chunks():
                 f.write(chunk)

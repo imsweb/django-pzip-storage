@@ -22,6 +22,16 @@ determines the requested file is not a PZip file, it will delegate to `FileSyste
 You may also use `PZipStorage` as a custom storage backend anywhere Django allows it; see
 [Managing Files](https://docs.djangoproject.com/en/dev/topics/files/) in the Django documentation for more information.
 
+## Settings
+
+* `PZIP_STORAGE_EXTENSION` - the extension to append to any file saved with `PZipStorage`. Defaults to `.pz`.
+* `PZIP_STORAGE_NOCOMPRESS` - a set of file extensions (with leading period) which should not be compressed when
+  saving. Defaults to:
+  `[".z", ".gz", ".zip", ".tgz", ".jpg", ".jpeg", ".png", ".gif", ".sit", ".sitx", ".7z", ".pz", ".bz2", ".xz"]`
+
+These settings may be overridden on a per-storage basis by instantiating `PZipStorage` manually with `extension` or
+`nocompress` keyword arguments.
+
 ## Signals
 
 `PZipStorage` emits a number of signals when opening files in various circumstances:

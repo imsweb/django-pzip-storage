@@ -9,7 +9,7 @@ from django.utils.encoding import force_bytes
 
 import pzip
 
-__version__ = "0.9.1"
+__version__ = "0.9.2"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
 
 
@@ -35,7 +35,7 @@ class PZipStorage(FileSystemStorage):
     )
 
     def __init__(self, *args, **kwargs):
-        self.keys = kwargs.pop("keys", self.default_keys)
+        self.keys = kwargs.pop("keys", getattr(settings, "PZIP_STORAGE_KEYS", self.default_keys))
         self.key_size = kwargs.pop("key_size", pzip.PZip.DEFAULT_KEY_SIZE)
         self.iterations = kwargs.pop("iterations", pzip.PZip.DEFAULT_ITERATIONS)
         self.extension = kwargs.pop("extension", getattr(settings, "PZIP_STORAGE_EXTENSION", self.DEFAULT_EXTENSION))

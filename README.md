@@ -28,6 +28,8 @@ You may also use `PZipStorage` as a custom storage backend anywhere Django allow
 * `PZIP_STORAGE_NOCOMPRESS` - a set of file extensions (with leading period) which should not be compressed when
   saving. Defaults to:
   `[".z", ".gz", ".zip", ".tgz", ".jpg", ".jpeg", ".png", ".gif", ".sit", ".sitx", ".7z", ".pz", ".bz2", ".xz"]`
+* `PZIP_STORAGE_KEYS` - an iterable (or callable returning an iterable) of keys to use. The first key on the list will
+  be used for encrypting files. Defaults to `PZipStorage.default_keys`, which yields `SECRET_KEY`.
 
 These settings may be overridden on a per-storage basis by instantiating `PZipStorage` manually with `extension` or
 `nocompress` keyword arguments.

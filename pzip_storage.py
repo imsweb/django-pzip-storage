@@ -9,7 +9,7 @@ from django.utils.encoding import force_bytes
 
 import pzip
 
-__version__ = "0.9.2"
+__version__ = "0.9.3"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
 
 

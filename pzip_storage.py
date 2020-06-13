@@ -55,15 +55,15 @@ class PZipStorage(FileSystemStorage):
 
     def is_pzip(self, name):
         try:
-            pzip.PZip.info(self.path(name))
+            pzip.PZip(self.path(name)).close()
             return True
         except pzip.InvalidFile:
             return False
 
     def size(self, name):
         try:
-            header = pzip.PZip.info(self.path(name))
-            return header.size
+            with pzip.PZip(self.path(name)) as f:
+                return f.size
         except pzip.InvalidFile:
             return super().size(name)
 
@@ -73,7 +73,7 @@ class PZipStorage(FileSystemStorage):
             for idx, key in enumerate(self.iter_keys()):
                 try:
                     f = super()._open(name, mode)
-                    return pzip.PZip(f, mode, key)
+                    return pzip.PZip(f, mode, key, peek=True)
                 except pzip.InvalidFile:
                     # Close the underlying fileobj if PZip fails to decode.
                     f.close()

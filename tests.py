@@ -13,8 +13,7 @@ from pzip_storage import PZipStorage, bad_keys, needs_encryption, needs_rotation
 
 class CompressedStorageTests(unittest.TestCase):
     def setUp(self):
-        # Use 1 iteration here to make unit tests fast.
-        self.storage = PZipStorage(iterations=1)
+        self.storage = PZipStorage()
 
     def test_improper_config(self):
         with self.assertRaises(ImproperlyConfigured):
@@ -39,7 +38,7 @@ class CompressedStorageTests(unittest.TestCase):
         keys = [b"first"]
         handler = MagicMock()
         needs_rotation.connect(handler, sender=PZipStorage)
-        storage = PZipStorage(keys=lambda: keys, iterations=1)
+        storage = PZipStorage(keys=lambda: keys)
         name = storage.save("testfile", ContentFile(plaintext))
         keys.insert(0, b"second")
         with storage.open(name) as f:
@@ -53,7 +52,7 @@ class CompressedStorageTests(unittest.TestCase):
         name = self.storage.save("test.jpg", ContentFile(b"JPEG data"))
         with self.storage.open(name) as f:
             self.assertIsInstance(f, pzip.PZip)
-            self.assertFalse(f.compressed)
+            self.assertEqual(f.compression, pzip.Compression.NONE)
 
     def test_unencrypted(self):
         handler = MagicMock()
@@ -86,8 +85,8 @@ if __name__ == "__main__":
             f.write(b"hello world")
         # Write a pre-existing encrypted file (with a random key) to the storage root.
         random_key = os.urandom(32)
-        with pzip.PZip(
-            os.path.join(tempdir, "encrypted" + PZipStorage.DEFAULT_EXTENSION), "wb", random_key, iterations=1
+        with pzip.open(
+            os.path.join(tempdir, "encrypted" + PZipStorage.DEFAULT_EXTENSION), "wb", key=random_key
         ) as f:
             f.write(b"unrecoverable data")
         # Set up Django settings to have a stable SECRET_KEY and MEDIA_ROOT.

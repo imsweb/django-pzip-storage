@@ -9,7 +9,7 @@ from django.utils.encoding import force_bytes
 
 import pzip
 
-__version__ = "0.9.3"
+__version__ = "0.9.9"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
 
 
@@ -36,8 +36,6 @@ class PZipStorage(FileSystemStorage):
 
     def __init__(self, *args, **kwargs):
         self.keys = kwargs.pop("keys", getattr(settings, "PZIP_STORAGE_KEYS", self.default_keys))
-        self.key_size = kwargs.pop("key_size", pzip.PZip.DEFAULT_KEY_SIZE)
-        self.iterations = kwargs.pop("iterations", pzip.PZip.DEFAULT_ITERATIONS)
         self.extension = kwargs.pop("extension", getattr(settings, "PZIP_STORAGE_EXTENSION", self.DEFAULT_EXTENSION))
         self.nocompress = kwargs.pop(
             "nocompress", getattr(settings, "PZIP_STORAGE_NOCOMPRESS", self.DEFAULT_NOCOMPRESS)
@@ -55,15 +53,15 @@ class PZipStorage(FileSystemStorage):
 
     def is_pzip(self, name):
         try:
-            pzip.PZip(self.path(name)).close()
+            pzip.open(self.path(name)).close()
             return True
         except pzip.InvalidFile:
             return False
 
     def size(self, name):
         try:
-            with pzip.PZip(self.path(name)) as f:
-                return f.size
+            with pzip.open(self.path(name)) as f:
+                return f.plaintext_size()
         except pzip.InvalidFile:
             return super().size(name)
 
@@ -73,7 +71,7 @@ class PZipStorage(FileSystemStorage):
             for idx, key in enumerate(self.iter_keys()):
                 try:
                     f = super()._open(name, mode)
-                    return pzip.PZip(f, mode, key, peek=True)
+                    return pzip.open(f, mode, key=key, peek=True)
                 except pzip.InvalidFile:
                     # Close the underlying fileobj if PZip fails to decode.
                     f.close()
@@ -100,14 +98,7 @@ class PZipStorage(FileSystemStorage):
 
         # Create a temporary file to do the encryption/compression before handing off.
         fd, path = tempfile.mkstemp(suffix=self.extension, dir=settings.FILE_UPLOAD_TEMP_DIR)
-        with pzip.PZip(
-            os.fdopen(fd, "wb"),
-            pzip.PZip.Mode.ENCRYPT,
-            key,
-            key_size=self.key_size,
-            iterations=self.iterations,
-            compress=should_compress,
-        ) as f:
+        with pzip.open(fd, "wb", key=key, compress=should_compress) as f:
             for chunk in content.chunks():
                 f.write(chunk)
 

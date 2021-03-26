@@ -11,7 +11,7 @@ with open("pzip_storage.py", "r") as src:
 setup(
     name="django-pzip-storage",
     version=version,
-    description="FileSystemStorage subclass for Django that encrypts/compresses with PZip.",
+    description="Storage backend for Django that encrypts/compresses with PZip.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Dan Watson",
@@ -19,9 +19,9 @@ setup(
     url="https://github.com/imsweb/django-pzip-storage",
     license="MIT",
     py_modules=["pzip_storage"],
-    install_requires=["pzip"],
+    install_requires=["pzip>=0.9.9"],
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",

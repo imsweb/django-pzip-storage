@@ -3,11 +3,11 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock
 
+import pzip
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 
-import pzip
 from pzip_storage import PZipStorage, bad_keys, needs_encryption, needs_rotation
 
 
@@ -34,7 +34,9 @@ class CompressedStorageTests(unittest.TestCase):
         self.assertFalse(self.storage.exists(name))
 
     def test_multiple_keys(self):
-        plaintext = b"Answer to the Ultimate Question of Life, The Universe, and Everything."
+        plaintext = (
+            b"Answer to the Ultimate Question of Life, The Universe, and Everything."
+        )
         keys = [b"first"]
         handler = MagicMock()
         needs_rotation.connect(handler, sender=PZipStorage)
@@ -44,7 +46,11 @@ class CompressedStorageTests(unittest.TestCase):
         with storage.open(name) as f:
             self.assertEqual(plaintext, f.read())
             handler.assert_called_once_with(
-                signal=needs_rotation, sender=PZipStorage, storage=storage, name=name, key=b"first"
+                signal=needs_rotation,
+                sender=PZipStorage,
+                storage=storage,
+                name=name,
+                key=b"first",
             )
         storage.delete(name)
 
@@ -62,7 +68,10 @@ class CompressedStorageTests(unittest.TestCase):
             self.assertNotIsInstance(f, pzip.PZip)
             self.assertEqual(f.read(), b"hello world")
             handler.assert_called_once_with(
-                signal=needs_encryption, sender=PZipStorage, storage=self.storage, name="unencrypted"
+                signal=needs_encryption,
+                sender=PZipStorage,
+                storage=self.storage,
+                name="unencrypted",
             )
 
     def test_bad_keys(self):
@@ -86,7 +95,9 @@ if __name__ == "__main__":
         # Write a pre-existing encrypted file (with a random key) to the storage root.
         random_key = os.urandom(32)
         with pzip.open(
-            os.path.join(tempdir, "encrypted" + PZipStorage.DEFAULT_EXTENSION), "wb", key=random_key
+            os.path.join(tempdir, "encrypted" + PZipStorage.DEFAULT_EXTENSION),
+            "wb",
+            key=random_key,
         ) as f:
             f.write(b"unrecoverable data")
         # Set up Django settings to have a stable SECRET_KEY and MEDIA_ROOT.

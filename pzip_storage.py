@@ -2,12 +2,11 @@ import os
 import tempfile
 
 import django.dispatch
+import pzip
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage
 from django.utils.encoding import force_bytes
-
-import pzip
 
 __version__ = "0.9.9"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
@@ -31,14 +30,35 @@ class PZipStorage(FileSystemStorage):
     DEFAULT_EXTENSION = ".pz"
 
     DEFAULT_NOCOMPRESS = set(
-        [".z", ".gz", ".zip", ".tgz", ".jpg", ".jpeg", ".png", ".gif", ".sit", ".sitx", ".7z", ".pz", ".bz2", ".xz"]
+        [
+            ".z",
+            ".gz",
+            ".zip",
+            ".tgz",
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".sit",
+            ".sitx",
+            ".7z",
+            ".pz",
+            ".bz2",
+            ".xz",
+        ]
     )
 
     def __init__(self, *args, **kwargs):
-        self.keys = kwargs.pop("keys", getattr(settings, "PZIP_STORAGE_KEYS", self.default_keys))
-        self.extension = kwargs.pop("extension", getattr(settings, "PZIP_STORAGE_EXTENSION", self.DEFAULT_EXTENSION))
+        self.keys = kwargs.pop(
+            "keys", getattr(settings, "PZIP_STORAGE_KEYS", self.default_keys)
+        )
+        self.extension = kwargs.pop(
+            "extension",
+            getattr(settings, "PZIP_STORAGE_EXTENSION", self.DEFAULT_EXTENSION),
+        )
         self.nocompress = kwargs.pop(
-            "nocompress", getattr(settings, "PZIP_STORAGE_NOCOMPRESS", self.DEFAULT_NOCOMPRESS)
+            "nocompress",
+            getattr(settings, "PZIP_STORAGE_NOCOMPRESS", self.DEFAULT_NOCOMPRESS),
         )
         if not self.keys:
             raise ImproperlyConfigured("PZipStorage requires at least one key.")
@@ -77,9 +97,13 @@ class PZipStorage(FileSystemStorage):
                     f.close()
                 finally:
                     if idx > 0:
-                        # If we opened this file with an old key, broadcast a signal for callers to do rotation.
-                        needs_rotation.send(sender=self.__class__, storage=self, name=name, key=key)
-            # If we tried all the keys and haven't returned yet for a PZip file, send a bad_keys signal.
+                        # If we opened this file with an old key, broadcast a signal for
+                        # callers to do rotation.
+                        needs_rotation.send(
+                            sender=self.__class__, storage=self, name=name, key=key
+                        )
+            # If we tried all the keys and haven't returned yet for a PZip file, send a
+            # bad_keys signal.
             bad_keys.send(sender=self.__class__, storage=self, name=name)
         else:
             # Send needs_encryption signal for non-pzip files.
@@ -90,14 +114,17 @@ class PZipStorage(FileSystemStorage):
         try:
             # Sse the first (most recent) defined key for encryption.
             key = next(self.iter_keys())
-        except StopIteration as si:
-            raise ImproperlyConfigured("PZipStorage requires at least one key.") from si
+        except StopIteration:
+            raise ImproperlyConfigured("PZipStorage requires at least one key.")
 
-        # Determine whether we should compress based on the original supplied name/extension.
+        # Determine whether we should compress based on the original supplied file
+        # extension.
         should_compress = os.path.splitext(name)[1].lower() not in self.nocompress
 
         # Create a temporary file to do the encryption/compression before handing off.
-        fd, path = tempfile.mkstemp(suffix=self.extension, dir=settings.FILE_UPLOAD_TEMP_DIR)
+        fd, path = tempfile.mkstemp(
+            suffix=self.extension, dir=settings.FILE_UPLOAD_TEMP_DIR
+        )
         with pzip.open(fd, "wb", key=key, compress=should_compress) as f:
             for chunk in content.chunks():
                 f.write(chunk)

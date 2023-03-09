@@ -12,9 +12,9 @@ __version__ = "0.9.9"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
 
 
-needs_rotation = django.dispatch.Signal(providing_args=["storage", "name", "key"])
-needs_encryption = django.dispatch.Signal(providing_args=["storage", "name"])
-bad_keys = django.dispatch.Signal(providing_args=["storage", "name"])
+needs_rotation = django.dispatch.Signal()
+needs_encryption = django.dispatch.Signal()
+bad_keys = django.dispatch.Signal()
 
 
 class IntermediateFile:

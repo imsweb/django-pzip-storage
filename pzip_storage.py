@@ -26,7 +26,6 @@ class IntermediateFile:
 
 
 class PZipStorage(FileSystemStorage):
-
     DEFAULT_EXTENSION = ".pz"
 
     DEFAULT_NOCOMPRESS = set(

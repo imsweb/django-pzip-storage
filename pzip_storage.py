@@ -111,7 +111,7 @@ class PZipStorage(FileSystemStorage):
 
     def create_encrypted_file(self, name, content):
         try:
-            # See the first (most recent) defined key for encryption.
+            # Use the first (most recent) defined key for encryption.
             key = next(self.iter_keys())
         except StopIteration:
             raise ImproperlyConfigured("PZipStorage requires at least one key.")

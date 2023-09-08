@@ -131,7 +131,7 @@ class PZipStorage(FileSystemStorage):
         return path
 
     def _save(self, name, content):
-        if not hasattr(content, "temporary_file_path"):
+        if not isinstance(content, IntermediateFile):
             path = self.create_encrypted_file(name, content)
             content = IntermediateFile(path)
 

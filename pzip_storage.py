@@ -109,9 +109,9 @@ class PZipStorage(FileSystemStorage):
             needs_encryption.send(sender=self.__class__, storage=self, name=name)
         return super()._open(name, mode)
 
-    def _save(self, name, content):
+    def create_encrypted_file(self, name, content):
         try:
-            # Sse the first (most recent) defined key for encryption.
+            # Use the first (most recent) defined key for encryption.
             key = next(self.iter_keys())
         except StopIteration:
             raise ImproperlyConfigured("PZipStorage requires at least one key.")
@@ -128,5 +128,12 @@ class PZipStorage(FileSystemStorage):
             for chunk in content.chunks():
                 f.write(chunk)
 
+        return path
+
+    def _save(self, name, content):
+        if not isinstance(content, IntermediateFile):
+            path = self.create_encrypted_file(name, content)
+            content = IntermediateFile(path)
+
         # FileSystemStorage will just move the file we wrote, so no need to clean up.
-        return super()._save(name + self.extension, IntermediateFile(path))
+        return super()._save(name + self.extension, content)

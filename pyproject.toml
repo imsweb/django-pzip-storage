@@ -32,10 +32,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-path = "pzip_storage.py"
+path = "src/pzip_storage.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["pzip_storage"]
+packages = ["src/pzip_storage.py"]
 
 [tool.ruff.lint]
 extend-select = ["I"]

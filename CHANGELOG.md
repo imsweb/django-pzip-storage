@@ -1,6 +1,7 @@
-## 1.2.0
+## 1.2.1
 
-*Note we skipped a version to align with `pzip`*
+*Note we skipped a version to align with `pzip`. Also, 1.2.0 was yanked due to incorrect
+packaging.*
 
 * Drop support for Django 3.x and Python 3.8
 * Test on Django 5.x and Python 3.13

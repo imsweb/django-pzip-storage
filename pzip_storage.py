@@ -8,7 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage
 from django.utils.encoding import force_bytes
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __version_info__ = tuple(int(num) for num in __version__.split("."))
 
 
@@ -33,6 +33,7 @@ class PZipStorage(FileSystemStorage):
             ".z",
             ".gz",
             ".zip",
+            ".zipx",
             ".tgz",
             ".jpg",
             ".jpeg",
@@ -44,6 +45,16 @@ class PZipStorage(FileSystemStorage):
             ".pz",
             ".bz2",
             ".xz",
+            ".rar",
+            ".cab",
+            ".zst",
+            ".lz",
+            ".lzma",
+            ".lz4",
+            ".jar",
+            ".heic",
+            ".avif",
+            ".webp",
         ]
     )
 
@@ -90,17 +101,17 @@ class PZipStorage(FileSystemStorage):
             for idx, key in enumerate(self.iter_keys()):
                 try:
                     f = super()._open(name, mode)
-                    return pzip.open(f, mode, key=key, peek=True)
-                except pzip.InvalidFile:
-                    # Close the underlying fileobj if PZip fails to decode.
-                    f.close()
-                finally:
+                    pz = pzip.open(f, mode, key=key, peek=True)
                     if idx > 0:
                         # If we opened this file with an old key, broadcast a signal for
                         # callers to do rotation.
                         needs_rotation.send(
                             sender=self.__class__, storage=self, name=name, key=key
                         )
+                    return pz
+                except pzip.InvalidFile:
+                    # Close the underlying fileobj if PZip fails to decode.
+                    f.close()
             # If we tried all the keys and haven't returned yet for a PZip file, send a
             # bad_keys signal.
             bad_keys.send(sender=self.__class__, storage=self, name=name)

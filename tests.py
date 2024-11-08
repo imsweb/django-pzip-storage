@@ -43,6 +43,7 @@ class CompressedStorageTests(unittest.TestCase):
         storage = PZipStorage(keys=lambda: keys)
         name = storage.save("testfile", ContentFile(plaintext))
         keys.insert(0, b"second")
+        keys.insert(0, b"third")
         with storage.open(name) as f:
             self.assertEqual(plaintext, f.read())
             handler.assert_called_once_with(

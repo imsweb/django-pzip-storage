@@ -16,7 +16,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "pzip>=0.9.9"
+    "pzip>=1.2.0"
 ]
 
 [dependency-groups]

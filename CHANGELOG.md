@@ -1,4 +1,10 @@
-## 1.2.1
+## 1.3.0 (in development)
+
+* Dropped support for Python 3.9
+* Test on Python 3.14 and Django 5.2
+
+
+## 1.2.1 (2024-11-08)
 
 *Note we skipped a version to align with `pzip`. Also, 1.2.0 was yanked due to incorrect
 packaging.*

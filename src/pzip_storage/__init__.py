@@ -1,3 +1,4 @@
+import importlib.metadata
 import os
 import tempfile
 
@@ -8,8 +9,10 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage
 from django.utils.encoding import force_bytes
 
-__version__ = "1.2.1"
-__version_info__ = tuple(int(num) for num in __version__.split("."))
+__version__ = importlib.metadata.version("django-pzip-storage")
+__version_info__ = tuple(
+    int(num) if num.isdigit() else num for num in __version__.split(".")
+)
 
 
 needs_rotation = django.dispatch.Signal()

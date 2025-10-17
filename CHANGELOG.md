@@ -1,7 +1,8 @@
 ## 1.3.0 (in development)
 
-* Dropped support for Python 3.9
+* Drop support for Python 3.9
 * Test on Python 3.14 and Django 5.2
+* Support opening files for writing
 
 
 ## 1.2.1 (2024-11-08)

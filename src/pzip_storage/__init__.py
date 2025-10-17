@@ -99,8 +99,13 @@ class PZipStorage(FileSystemStorage):
             return super().size(name)
 
     def _open(self, name, mode="rb"):
+        if mode == "wb":
+            f = super()._open(name, mode)
+            key = self.get_write_key()
+            compress = self.should_compress(name)
+            return pzip.open(f, mode, key=key, compress=compress)
         if self.is_pzip(name):
-            assert mode == "rb"  # TODO: support writable files here?
+            assert mode == "rb"
             for idx, key in enumerate(self.iter_keys()):
                 try:
                     f = super()._open(name, mode)
@@ -123,22 +128,24 @@ class PZipStorage(FileSystemStorage):
             needs_encryption.send(sender=self.__class__, storage=self, name=name)
         return super()._open(name, mode)
 
-    def create_encrypted_file(self, name, content):
+    def should_compress(self, name):
+        return os.path.splitext(name)[1].lower() not in self.nocompress
+
+    def get_write_key(self):
         try:
             # Use the first (most recent) defined key for encryption.
-            key = next(self.iter_keys())
+            return next(self.iter_keys())
         except StopIteration:
             raise ImproperlyConfigured("PZipStorage requires at least one key.")
 
-        # Determine whether we should compress based on the original supplied file
-        # extension.
-        should_compress = os.path.splitext(name)[1].lower() not in self.nocompress
-
+    def create_encrypted_file(self, name, content):
         # Create a temporary file to do the encryption/compression before handing off.
         fd, path = tempfile.mkstemp(
             suffix=self.extension, dir=settings.FILE_UPLOAD_TEMP_DIR
         )
-        with pzip.open(fd, "wb", key=key, compress=should_compress) as f:
+        key = self.get_write_key()
+        compress = self.should_compress(name)
+        with pzip.open(fd, "wb", key=key, compress=compress) as f:
             for chunk in content.chunks():
                 f.write(chunk)
 

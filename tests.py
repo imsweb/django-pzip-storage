@@ -87,6 +87,20 @@ class CompressedStorageTests(unittest.TestCase):
                 name="encrypted" + PZipStorage.DEFAULT_EXTENSION,
             )
 
+    def test_write(self):
+        plaintext = b"Hello world!"
+        with self.storage.open("writable", "wb") as f:
+            self.assertIsInstance(f, pzip.PZip)
+            f.write(b"initial")
+        with self.storage.open("writable", "wb") as f:
+            self.assertIsInstance(f, pzip.PZip)
+            f.write(plaintext)
+        with self.storage.open("writable") as f:
+            # TODO: should probably be io.UnsupportedOperation in pzip?
+            with self.assertRaises(Exception):
+                f.write(b"nope")
+            self.assertEqual(plaintext, f.read())
+
 
 if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as tempdir:

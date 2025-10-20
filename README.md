@@ -16,7 +16,7 @@ The simplest way to use `PZipStorage` is by setting your
 without first rotating the keys of all stored files, they will be lost forever.
 
 `PZipStorage` may be used with existing unencrypted files, as a drop-in replacement for `FileSystemStorage`. If it
-determines the requested file is not a PZip file, it will delegate to `FileSystemStorage` after emitting a
+determined the requested file is not a PZip file, it will delegate to `FileSystemStorage` after emitting a
 `needs_encryption` signal (see below).
 
 You may also use `PZipStorage` as a custom storage backend anywhere Django allows it; see

@@ -3,6 +3,8 @@
 * Drop support for Python 3.9
 * Test on Python 3.14 and Django 5.2
 * Support opening files for writing
+* Allow `nocompress` option to accept a callable, or `True` to indicate never compress
+* Experimental `rotate_storage` Django command for rotating file fields stored in `PZipStorage`
 
 
 ## 1.2.1 (2024-11-08)

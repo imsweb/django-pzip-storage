@@ -60,6 +60,16 @@ class CompressedStorageTests(unittest.TestCase):
         with self.storage.open(name) as f:
             self.assertIsInstance(f, pzip.PZip)
             self.assertEqual(f.compression, pzip.Compression.NONE)
+        # Compress everything.
+        compressed = PZipStorage(nocompress=False)
+        with compressed.open("test.jpg", "wb") as f:
+            self.assertIsInstance(f, pzip.PZip)
+            self.assertEqual(f.compression, pzip.Compression.GZIP)
+        # Compress nothing.
+        raw = PZipStorage(nocompress=True)
+        with raw.open("test.txt", "wb") as f:
+            self.assertIsInstance(f, pzip.PZip)
+            self.assertEqual(f.compression, pzip.Compression.NONE)
 
     def test_unencrypted(self):
         handler = MagicMock()

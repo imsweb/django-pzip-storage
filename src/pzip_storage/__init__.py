@@ -73,6 +73,8 @@ class PZipStorage(FileSystemStorage):
             "nocompress",
             getattr(settings, "PZIP_STORAGE_NOCOMPRESS", self.DEFAULT_NOCOMPRESS),
         )
+        if callable(self.nocompress):
+            self.nocompress = self.nocompress()
         if not self.keys:
             raise ImproperlyConfigured("PZipStorage requires at least one key.")
         super().__init__(*args, **kwargs)
@@ -129,6 +131,8 @@ class PZipStorage(FileSystemStorage):
         return super()._open(name, mode)
 
     def should_compress(self, name):
+        if isinstance(self.nocompress, bool):
+            return not self.nocompress
         return os.path.splitext(name)[1].lower() not in self.nocompress
 
     def get_write_key(self):
